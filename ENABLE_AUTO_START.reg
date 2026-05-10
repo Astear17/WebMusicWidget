@@ -1,0 +1,4 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\TikTok LIVE Studio Launcher.exe]
+"Debugger"="\"D:\\Windows Tool\\now-playing\\hook_launcher.bat\""

@@ -1,0 +1,6 @@
+node_modules/
+*.log
+MediaReader.exe
+cloudflared.exe
+.antigravity/
+.gemini/

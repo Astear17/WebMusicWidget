@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Now Playing Overlay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: transparent;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        .widget {
+            position: relative;
+            width: 520px;
+            height: 140px;
+            background: 
+                linear-gradient(rgba(45, 30, 15, 0.95), rgba(20, 10, 5, 0.95)),
+                linear-gradient(rgba(200, 130, 50, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 130, 50, 0.1) 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px, 20px 20px;
+            background-position: 0 0, -1px -1px, -1px -1px;
+            border-left: 6px solid #f09020;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 0 15px rgba(0,0,0,0.5);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .widget.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .widget.paused {
+            opacity: 0.7;
+        }
+
+        /* Album Cover Section */
+        .album-cover {
+            width: 100px;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(240, 144, 32, 0.3);
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .album-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .album-cover.has-image img {
+            display: block;
+        }
+
+        .album-cover svg {
+            width: 40px;
+            height: 40px;
+            fill: #f09020;
+            opacity: 0.2;
+        }
+
+        .album-cover.has-image svg {
+            display: none;
+        }
+
+        /* Main Content Area */
+        .content-main {
+            flex-grow: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        .top-hud {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fbd68a;
+            height: 24px;
+        }
+
+        .speaker-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            filter: drop-shadow(0 0 2px #fbd68a);
+        }
+
+        .vu-meter {
+            display: flex;
+            gap: 4px;
+        }
+
+        .vu-dot {
+            width: 4px;
+            height: 4px;
+            background-color: #fbd68a;
+            box-shadow: 0 0 4px #fbd68a;
+            opacity: 0.2;
+        }
+        
+        .vu-dot.active {
+            opacity: 1;
+        }
+
+        /* Text Section */
+        .text-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+        }
+
+        .marquee-track {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            mask-image: linear-gradient(to right, black 90%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
+        }
+
+        .marquee-inner {
+            display: inline-block;
+            will-change: transform;
+        }
+
+        .marquee-inner.scrolling {
+            animation: marqueeScroll var(--scroll-duration, 10s) linear infinite;
+        }
+
+        @keyframes marqueeScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .title-text {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        .artist-text {
+            color: #f09020;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 5px rgba(240, 144, 32, 0.4);
+        }
+
+        /* Progress & Time Section */
+        .progress-section {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(240, 144, 32, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #f09020;
+            box-shadow: 0 0 8px #f09020;
+            width: 0%;
+            transition: width 0.3s linear;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(251, 214, 138, 0.6);
+            letter-spacing: 0.05em;
+        }
+
+        /* Right side vertical slider */
+        .right-slider {
+            width: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 1px solid rgba(251, 214, 138, 0.15);
+            padding-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .slider-box {
+            width: 10px;
+            height: 10px;
+            border: 1px solid #fbd68a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .slider-box::after {
+            content: "";
+            width: 4px;
+            height: 4px;
+            background-color: #fbd68a;
+        }
+
+        .slider-track {
+            flex-grow: 1;
+            width: 14px;
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .slider-ticks {
+            position: absolute;
+            left: 2px;
+            top: 0;
+            bottom: 0;
+            width: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .slider-tick {
+            height: 1px;
+            background-color: #fbd68a;
+            opacity: 0.4;
+        }
+        .slider-tick:nth-child(even) { width: 4px; }
+        .slider-tick:nth-child(odd) { width: 10px; }
+
+        .slider-knob {
+            position: absolute;
+            left: -1px;
+            width: 16px;
+            height: 6px;
+            background-color: #fbd68a;
+            box-shadow: 0 0 8px #fbd68a;
+            top: 100%;
+            transition: top 0.2s linear;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div class="widget" id="widget">
+        <!-- Album Cover -->
+        <div class="album-cover" id="albumCover">
+            <svg viewBox="0 0 24 24">
+                <path d="M12,3V13.55C11.41,13.21 10.73,13 10,13C7.79,13 6,14.79 6,17C6,19.21 7.79,21 10,21C12.21,21 14,19.21 14,17V7H18V3H12Z" />
+            </svg>
+            <img id="albumImage" src="" alt="Cover">
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-main">
+            <div class="top-hud">
+                <div class="speaker-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                </div>
+                <div class="vu-meter" id="vuMeter">
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                </div>
+            </div>
+
+            <div class="text-block">
+                <div class="marquee-track" id="titleTrack">
+                    <div class="marquee-inner" id="titleInner">
+                        <span class="title-text" id="titleText">Waiting for Media...</span>
+                    </div>
+                </div>
+                <div class="marquee-track" id="artistTrack">
+                    <div class="marquee-inner" id="artistInner">
+                        <span class="artist-text" id="artistText">Connection pending</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="time-display">
+                    <span id="currentTime">00:00</span>
+                    <span id="totalTime">00:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side Vertical Slider -->
+        <div class="right-slider">
+            <div class="slider-box"></div>
+            <div class="slider-track">
+                <div class="slider-ticks">
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                </div>
+                <div class="slider-knob" id="progressKnob"></div>
+            </div>
+            <div class="slider-box" style="transform: rotate(180deg)"></div>
+        </div>
+    </div>
+
+    <script>
+        const widget = document.getElementById("widget");
+        const titleText = document.getElementById("titleText");
+        const titleInner = document.getElementById("titleInner");
+        const titleTrack = document.getElementById("titleTrack");
+        const artistText = document.getElementById("artistText");
+        const artistInner = document.getElementById("artistInner");
+        const artistTrack = document.getElementById("artistTrack");
+        const progressKnob = document.getElementById("progressKnob");
+        const progressBar = document.getElementById("progressBar");
+        const currentTimeEl = document.getElementById("currentTime");
+        const totalTimeEl = document.getElementById("totalTime");
+        const albumCover = document.getElementById("albumCover");
+        const albumImage = document.getElementById("albumImage");
+        const vuDots = document.querySelectorAll('.vu-dot');
+
+        const SCROLL_SPEED_PX_PER_SEC = 40;
+        const GAP = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+
+        let currentTitle = "";
+        let currentArtist = "";
+        let currentCover = "";
+
+        let vuInterval = null;
+        function updateVuMeter(isPlaying) {
+            if (!isPlaying) {
+                if (vuInterval) {
+                    clearInterval(vuInterval);
+                    vuInterval = null;
+                }
+                vuDots.forEach(d => d.classList.remove('active'));
+                return;
+            }
+            if (!vuInterval) {
+                vuInterval = setInterval(() => {
+                    const activeCount = Math.floor(Math.random() * 5) + 2; 
+                    vuDots.forEach((d, i) => {
+                        if (i < activeCount) d.classList.add('active');
+                        else d.classList.remove('active');
+                    });
+                }, 150);
+            }
+        }
+
+        function applyMarquee(textEl, innerEl, trackEl, content) {
+            innerEl.classList.remove("scrolling");
+            innerEl.style.removeProperty("--scroll-duration");
+            textEl.textContent = content;
+            innerEl.innerHTML = "";
+            innerEl.appendChild(textEl);
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    const textWidth = innerEl.scrollWidth;
+                    const trackWidth = trackEl.clientWidth;
+
+                    if (textWidth > trackWidth) {
+                        const clone = textEl.cloneNode(true);
+                        const gapSpan = document.createElement("span");
+                        gapSpan.textContent = GAP;
+                        innerEl.appendChild(gapSpan);
+                        innerEl.appendChild(clone);
+
+                        const totalWidth = textWidth + gapSpan.offsetWidth;
+                        const duration = totalWidth / SCROLL_SPEED_PX_PER_SEC;
+                        innerEl.style.setProperty("--scroll-duration", duration + "s");
+                        innerEl.classList.add("scrolling");
+                    }
+                });
+            });
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return "00:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0');
+        }
+
+        function renderState(data) {
+            if (!data || data.type === "clear" || !data.player) {
+                widget.classList.remove("visible");
+                titleText.textContent = "Waiting for Media...";
+                artistText.textContent = "No data detected";
+                currentCover = "";
+                albumCover.classList.remove("has-image");
+                updateVuMeter(false);
+                widget.classList.add("visible");
+                return;
+            }
+
+            const p = data.player;
+            const title = p.title || "Untitled";
+            let artist = p.artist || p.name || "Unknown";
+            if (p.album && p.album.trim().length > 0) {
+                artist = artist + " / " + p.album;
+            }
+            
+            const isPlaying = p.state === 0;
+            const isPaused = p.state === 1;
+
+            if (title !== currentTitle) {
+                currentTitle = title;
+                applyMarquee(titleText, titleInner, titleTrack, title);
+            }
+
+            if (artist !== currentArtist) {
+                currentArtist = artist;
+                applyMarquee(artistText, artistInner, artistTrack, artist);
+            }
+
+            // Cover Image
+            if (p.coverSrc && p.coverSrc !== currentCover) {
+                currentCover = p.coverSrc;
+                albumImage.src = p.coverSrc;
+                albumCover.classList.add("has-image");
+            } else if (!p.coverSrc) {
+                currentCover = "";
+                albumCover.classList.remove("has-image");
+            }
+
+            // Progress Logic
+            if (p.duration > 0 && !isNaN(p.position)) {
+                let percent = (p.position / p.duration) * 100;
+                if (percent > 100) percent = 100;
+                if (percent < 0) percent = 0;
+                
+                // Vertical Slider
+                progressKnob.style.top = `calc(${percent}% - 6px)`;
+                
+                // Horizontal Bar
+                progressBar.style.width = percent + "%";
+                
+                // Time
+                currentTimeEl.textContent = formatTime(p.position);
+                totalTimeEl.textContent = formatTime(p.duration);
+            } else {
+                progressKnob.style.top = "100%";
+                progressBar.style.width = "0%";
+                currentTimeEl.textContent = "00:00";
+                totalTimeEl.textContent = "00:00";
+            }
+
+            if (isPlaying) {
+                widget.classList.remove("paused");
+                updateVuMeter(true);
+            } else {
+                widget.classList.add("paused");
+                updateVuMeter(false);
+            }
+
+            widget.classList.add("visible");
+        }
+
+        function getWsUrl() {
+            const proto = location.protocol === "https:" ? "wss:" : "ws:";
+            return proto + "//" + location.host + "/ws";
+        }
+
+        function connect() {
+            const ws = new WebSocket(getWsUrl());
+
+            ws.onopen = () => console.log("[Overlay] Connected");
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    renderState(data);
+                } catch (e) {}
+            };
+            ws.onclose = () => {
+                widget.classList.remove("visible");
+                setTimeout(connect, 3000);
+            };
+        }
+
+        connect();
+    </script>
+</body>
+</html>
