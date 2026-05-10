@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Theme</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/themes/Fantasy.css">
+</head>
+<body>
+    <div class="widget" id="widget">
+        <!-- Album Cover -->
+        <div class="album-cover" id="albumCover">
+            <svg viewBox="0 0 24 24">
+                <path d="M12,3V13.55C11.41,13.21 10.73,13 10,13C7.79,13 6,14.79 6,17C6,19.21 7.79,21 10,21C12.21,21 14,19.21 14,17V7H18V3H12Z" />
+            </svg>
+            <img id="albumImage" src="" alt="Cover">
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-main">
+            <div class="top-hud">
+                <div class="speaker-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                </div>
+                <div class="vu-meter" id="vuMeter">
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                    <div class="vu-dot"></div>
+                </div>
+            </div>
+
+            <div class="text-block">
+                <div class="marquee-track" id="titleTrack">
+                    <div class="marquee-inner" id="titleInner">
+                        <span class="title-text" id="titleText">Waiting for Media...</span>
+                    </div>
+                </div>
+                <div class="marquee-track" id="artistTrack">
+                    <div class="marquee-inner" id="artistInner">
+                        <span class="artist-text" id="artistText">Connection pending</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="time-display">
+                    <span id="currentTime">00:00</span>
+                    <span id="totalTime">00:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side Vertical Slider -->
+        <div class="right-slider">
+            <div class="slider-box"></div>
+            <div class="slider-track">
+                <div class="slider-ticks">
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                    <div class="slider-tick"></div>
+                </div>
+                <div class="slider-knob" id="progressKnob"></div>
+            </div>
+            <div class="slider-box" style="transform: rotate(180deg)"></div>
+        </div>
+    </div>
+    <script src="/js/shared.js"></script>
+</body>
+</html>

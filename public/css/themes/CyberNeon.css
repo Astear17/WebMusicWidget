@@ -1,0 +1,38 @@
+/* CyberNeon.css */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'JetBrains Mono', monospace; background: transparent; overflow: hidden; width: 100vw; height: 100vh; display: flex; align-items: flex-start; justify-content: flex-start; }
+.widget {
+    position: relative; width: 1040px; height: 280px;
+    background: linear-gradient(135deg, rgba(0, 20, 20, 0.9), rgba(0, 5, 10, 0.9));
+    border: 1px solid #0f0; box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.2), 0 0 15px rgba(0, 255, 0, 0.3);
+    padding: 30px; display: flex; align-items: center; gap: 30px;
+    opacity: 0; transform: scale(1.05); transition: all 0.4s;
+    clip-path: polygon(0 0, 95% 0, 100% 15%, 100% 100%, 5% 100%, 0 85%);
+}
+.widget::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.05) 3px, rgba(0,255,0,0.05) 3px); pointer-events: none; }
+.widget.visible { opacity: 1; transform: scale(1); }
+.widget.paused { opacity: 0.7; filter: saturate(0.5); }
+.album-cover { width: 200px; height: 200px; background: #001100; border: 2px solid #0f0; position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%); }
+.album-cover img { width: 100%; height: 100%; object-fit: cover; display: none; opacity: 0.8; mix-blend-mode: luminosity; }
+.widget:not(.paused) .album-cover img { mix-blend-mode: normal; opacity: 1; }
+.album-cover.has-image img { display: block; }
+.album-cover svg { width: 80px; height: 80px; fill: #0f0; opacity: 0.5; }
+.album-cover.has-image svg { display: none; }
+.content-main { flex-grow: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.top-hud { display: flex; align-items: center; gap: 20px; color: #0f0; margin-bottom: 10px; }
+.speaker-icon svg { width: 24px; height: 24px; fill: currentColor; }
+.vu-meter { display: flex; gap: 5px; }
+.vu-dot { width: 6px; height: 12px; background-color: #0f0; opacity: 0.2; transform: skewX(-15deg); }
+.vu-dot.active { opacity: 1; box-shadow: 0 0 10px #0f0; }
+.text-block { display: flex; flex-direction: column; gap: 5px; overflow: hidden; margin-bottom: 20px; }
+.marquee-track { overflow: hidden; white-space: nowrap; position: relative; mask-image: linear-gradient(to right, black 85%, transparent 100%); }
+.marquee-inner { display: inline-block; will-change: transform; }
+.marquee-inner.scrolling { animation: marqueeScroll var(--scroll-duration, 10s) linear infinite; }
+@keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.title-text { color: #fff; font-size: 36px; font-weight: 700; text-shadow: 2px 2px 0 #0f0; }
+.artist-text { color: #0f0; font-size: 20px; text-transform: uppercase; letter-spacing: 0.2em; }
+.progress-section { display: flex; flex-direction: column; gap: 8px; }
+.progress-container { width: 100%; height: 4px; background: rgba(0, 255, 0, 0.2); position: relative; overflow: hidden; }
+.progress-bar { position: absolute; top: 0; left: 0; height: 100%; background: #0f0; width: 0%; box-shadow: 0 0 10px #0f0; }
+.time-display { display: flex; justify-content: space-between; font-size: 14px; color: #0f0; opacity: 0.8; }
+.right-slider { display: none; }

@@ -1,0 +1,67 @@
+/* Wanderer.css - Upscaled 2x from original */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'JetBrains Mono', monospace;
+    background: transparent; overflow: hidden;
+    width: 100vw; height: 100vh;
+    display: flex; align-items: flex-start; justify-content: flex-start;
+}
+
+.widget {
+    position: relative;
+    width: 1040px; height: 280px;
+    background: 
+        linear-gradient(rgba(45, 30, 15, 0.95), rgba(20, 10, 5, 0.95)),
+        linear-gradient(rgba(200, 130, 50, 0.1) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(200, 130, 50, 0.1) 2px, transparent 2px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+    background-position: 0 0, -2px -2px, -2px -2px;
+    border-left: 12px solid #f09020;
+    box-shadow: inset 0 0 80px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5);
+    padding: 24px 30px; display: flex; align-items: center; gap: 30px;
+    opacity: 0; transform: translateX(-40px);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.widget.visible { opacity: 1; transform: translateX(0); }
+.widget.paused { opacity: 0.7; }
+
+.album-cover {
+    width: 200px; height: 200px; background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(240, 144, 32, 0.3);
+    flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+.album-cover img { width: 100%; height: 100%; object-fit: cover; display: none; }
+.album-cover.has-image img { display: block; }
+.album-cover svg { width: 80px; height: 80px; fill: #f09020; opacity: 0.2; }
+.album-cover.has-image svg { display: none; }
+
+.content-main { flex-grow: 1; height: 100%; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+.top-hud { display: flex; align-items: center; gap: 20px; color: #fbd68a; height: 48px; }
+.speaker-icon svg { width: 36px; height: 36px; fill: currentColor; filter: drop-shadow(0 0 4px #fbd68a); }
+.vu-meter { display: flex; gap: 8px; }
+.vu-dot { width: 8px; height: 8px; background-color: #fbd68a; box-shadow: 0 0 8px #fbd68a; opacity: 0.2; }
+.vu-dot.active { opacity: 1; }
+
+.text-block { display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.marquee-track { overflow: hidden; white-space: nowrap; position: relative; mask-image: linear-gradient(to right, black 90%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%); }
+.marquee-inner { display: inline-block; will-change: transform; }
+.marquee-inner.scrolling { animation: marqueeScroll var(--scroll-duration, 10s) linear infinite; }
+@keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+.title-text { color: #fff; font-size: 40px; font-weight: 700; text-shadow: 0 0 16px rgba(255, 255, 255, 0.3); }
+.artist-text { color: #f09020; font-size: 26px; text-transform: uppercase; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(240, 144, 32, 0.4); }
+
+.progress-section { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.progress-container { width: 100%; height: 8px; background: rgba(240, 144, 32, 0.1); position: relative; overflow: hidden; }
+.progress-bar { position: absolute; top: 0; left: 0; height: 100%; background: #f09020; box-shadow: 0 0 16px #f09020; width: 0%; }
+.time-display { display: flex; justify-content: space-between; font-size: 20px; color: rgba(251, 214, 138, 0.6); letter-spacing: 0.05em; }
+
+.right-slider { width: 40px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; border-left: 2px solid rgba(251, 214, 138, 0.15); padding-left: 20px; flex-shrink: 0; }
+.slider-box { width: 20px; height: 20px; border: 2px solid #fbd68a; display: flex; align-items: center; justify-content: center; }
+.slider-box::after { content: ""; width: 8px; height: 8px; background-color: #fbd68a; }
+.slider-track { flex-grow: 1; width: 28px; margin: 10px 0; position: relative; }
+.slider-ticks { position: absolute; left: 4px; top: 0; bottom: 0; width: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+.slider-tick { height: 2px; background-color: #fbd68a; opacity: 0.4; }
+.slider-tick:nth-child(even) { width: 8px; }
+.slider-tick:nth-child(odd) { width: 20px; }
+.slider-knob { position: absolute; left: -2px; width: 32px; height: 12px; background-color: #fbd68a; box-shadow: 0 0 16px #fbd68a; top: 100%; transition: top 0.2s linear; z-index: 5; }

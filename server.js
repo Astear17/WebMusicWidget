@@ -338,8 +338,9 @@ const httpServer = http.createServer((req, res) => {
   
   console.log(`[HTTP] Request: ${req.method} ${req.url}`);
 
-  if (pathname === "/") {
-    pathname = "/overlay.html";
+  if (pathname === "/" || pathname === "/overlay.html") {
+    const theme = process.env.THEME || "Wanderer";
+    pathname = `/themes/${theme}.html`;
   }
 
   const filePath = path.join(__dirname, "public", pathname);

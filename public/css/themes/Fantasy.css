@@ -1,0 +1,34 @@
+/* Fantasy.css */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Outfit', serif; background: transparent; overflow: hidden; width: 100vw; height: 100vh; display: flex; align-items: flex-start; justify-content: flex-start; }
+@keyframes floatMagic { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-5px) rotate(1deg); } 100% { transform: translateY(0px) rotate(0deg); } }
+.widget {
+    position: relative; width: 1040px; height: 280px;
+    background: radial-gradient(circle at center, rgba(60, 20, 80, 0.95), rgba(20, 5, 30, 0.95));
+    border: 3px solid #d4af37; border-radius: 15px 50px 15px 50px;
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.4), inset 0 0 20px rgba(0,0,0,0.8);
+    padding: 30px 40px; display: flex; align-items: center; gap: 40px;
+    opacity: 0; transform: scale(0.9) translateY(20px); transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.widget.visible { opacity: 1; transform: scale(1) translateY(0); }
+.widget.paused { opacity: 0.8; filter: saturate(0.7); }
+.album-cover { width: 210px; height: 210px; background: #000; border: 4px solid #d4af37; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 25px rgba(212, 175, 55, 0.5); animation: floatMagic 6s infinite; }
+.album-cover img { width: 100%; height: 100%; object-fit: cover; display: none; }
+.album-cover.has-image img { display: block; }
+.album-cover svg { width: 80px; height: 80px; fill: #d4af37; }
+.album-cover.has-image svg { display: none; }
+.content-main { flex-grow: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.top-hud { display: none; }
+.vu-meter { display: none; }
+.text-block { display: flex; flex-direction: column; gap: 12px; overflow: hidden; margin-bottom: 25px; }
+.marquee-track { overflow: hidden; white-space: nowrap; position: relative; mask-image: linear-gradient(to right, black 85%, transparent 100%); }
+.marquee-inner { display: inline-block; will-change: transform; }
+.marquee-inner.scrolling { animation: marqueeScroll var(--scroll-duration, 10s) linear infinite; }
+@keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.title-text { color: #fff; font-size: 52px; font-weight: 700; text-shadow: 0 0 10px rgba(212, 175, 55, 0.8); font-family: serif; }
+.artist-text { color: #d4af37; font-size: 26px; font-style: italic; letter-spacing: 0.05em; text-shadow: 0 0 5px rgba(212, 175, 55, 0.4); }
+.progress-section { display: flex; flex-direction: column; gap: 12px; }
+.progress-container { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border: 1px solid rgba(212, 175, 55, 0.5); border-radius: 3px; position: relative; overflow: hidden; }
+.progress-bar { position: absolute; top: 0; left: 0; height: 100%; background: linear-gradient(90deg, #8a2be2, #d4af37); width: 0%; box-shadow: 0 0 10px #d4af37; }
+.time-display { display: flex; justify-content: space-between; font-size: 16px; color: #d4af37; font-family: serif; }
+.right-slider { display: none; }
