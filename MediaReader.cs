@@ -64,15 +64,18 @@ class Program
                         var now = DateTimeOffset.Now;
                         var elapsed = now - timeline.LastUpdatedTime;
                         
+                        // Relative position and duration
+                        double relPos = (timeline.Position - timeline.StartTime).TotalSeconds;
+                        double relDur = (timeline.EndTime - timeline.StartTime).TotalSeconds;
+
                         // Only interpolate if the song is actually playing
-                        double currentPos = timeline.Position.TotalSeconds;
                         if (info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
                         {
-                            currentPos += elapsed.TotalSeconds;
+                            relPos += elapsed.TotalSeconds;
                         }
                         
-                        position = currentPos;
-                        duration = timeline.EndTime.TotalSeconds;
+                        position = relPos;
+                        duration = relDur;
                         
                         // Cap position at duration
                         if (position > duration) position = duration;

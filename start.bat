@@ -41,26 +41,37 @@ set RETRY_COUNT=0
 :tunnel_start
 echo  Attempting to create Cloudflare tunnel...
 if not exist "cloudflared.exe" (
-    echo  [ERROR] cloudflared.exe not found in the current directory.
-    echo  Please download it from https://github.com/cloudflare/cloudflared/releases
+    echo  [ERROR] cloudflared.exe not found.
     pause
     goto cleanup
 )
 
-.\cloudflared.exe tunnel --url http://localhost:8080
+:: Run cloudflared and auto-copy the URL to clipboard using PowerShell
+powershell -Command ".\cloudflared.exe tunnel --url http://localhost:8080 2>&1 | ForEach-Object { Write-Host $_; if ($_ -match 'https://[a-zA-Z0-9-]+\.trycloudflare\.com') { $url = $matches[0]; $url | Set-Clipboard; Write-Host \"`n[SUCCESS] URL COPIED TO CLIPBOARD: $url`n\" -ForegroundColor Cyan } }"
+
 if %ERRORLEVEL% NEQ 0 (
     set /a RETRY_COUNT+=1
     echo.
-    echo  [WARNING] Cloudflare failed (Attempt %RETRY_COUNT%)...
-    timeout /t 5 >nul
+    echo  [WARNING] Tunnel disconnected (Attempt %RETRY_COUNT%).
+    echo  [HINT] Type 'report' to open a bug issue with logs, or press any key to retry.
+    timeout /t 5
     goto tunnel_start
 )
 goto cleanup
 
+:report_bug
+echo  Collecting logs...
+set "ISSUE_URL=https://github.com/Astear17/WebMusicWidget/issues/new"
+powershell -Command "$log = '=== System Log ===`n'; if(Test-Path server.log){ $log += Get-Content server.log -Tail 50 | Out-String }; $log | Set-Clipboard; Start-Process '%ISSUE_URL%'"
+echo  [INFO] Logs copied to clipboard. Opening GitHub...
+pause
+goto tunnel_start
+
 :cleanup
 echo.
-echo  Stopping servers...
+echo  Stopping services...
 taskkill /F /IM MediaReader.exe >nul 2>nul
+taskkill /F /IM cloudflared.exe >nul 2>nul
 powershell -Command "Get-NetTCPConnection -LocalPort 8080, 8974 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
 echo  Done.
 pause
