@@ -39,45 +39,45 @@ class Program
                     {
                         lastMediaId = mediaId;
                         currentThumbnail = "";
-                        if (mediaProps.Thumbnail != null)
-                        {
-                            try {
-                                using (var stream = await mediaProps.Thumbnail.OpenReadAsync())
+                    }
+
+                    // Retry thumbnail if we don't have it yet
+                    if (string.IsNullOrEmpty(currentThumbnail) && mediaProps.Thumbnail != null)
+                    {
+                        try {
+                            using (var stream = await mediaProps.Thumbnail.OpenReadAsync())
+                            {
+                                var bytes = new byte[stream.Size];
+                                using (var reader = new Windows.Storage.Streams.DataReader(stream.GetInputStreamAt(0)))
                                 {
-                                    var bytes = new byte[stream.Size];
-                                    using (var reader = new Windows.Storage.Streams.DataReader(stream.GetInputStreamAt(0)))
-                                    {
-                                        await reader.LoadAsync((uint)stream.Size);
-                                        reader.ReadBytes(bytes);
-                                        currentThumbnail = "data:image/png;base64," + Convert.ToBase64String(bytes);
-                                    }
+                                    await reader.LoadAsync((uint)stream.Size);
+                                    reader.ReadBytes(bytes);
+                                    currentThumbnail = "data:image/png;base64," + Convert.ToBase64String(bytes);
                                 }
-                            } catch { currentThumbnail = ""; }
-                        }
+                            }
+                        } catch { /* Fallback to empty and retry next loop */ }
                     }
 
                     double position = 0;
                     double duration = 0;
                     var timeline = session.GetTimelineProperties();
-                    if (timeline != null)
+                    if (timeline != null && timeline.EndTime.TotalSeconds > 0)
                     {
-                        var now = DateTimeOffset.Now;
-                        var elapsed = now - timeline.LastUpdatedTime;
+                        // Calculate precise current position using LastUpdatedTime
+                        var now = DateTimeOffset.UtcNow;
+                        var timeSinceUpdate = now - timeline.LastUpdatedTime;
                         
-                        // Relative position and duration
-                        double relPos = (timeline.Position - timeline.StartTime).TotalSeconds;
-                        double relDur = (timeline.EndTime - timeline.StartTime).TotalSeconds;
-
-                        // Only interpolate if the song is actually playing
-                        if (info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
-                        {
-                            relPos += elapsed.TotalSeconds;
-                        }
+                        // Current position = reported position + (time since reported * rate)
+                        double rate = info.PlaybackRate ?? 1.0;
+                        if (info.PlaybackStatus != GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing) 
+                            timeSinceUpdate = TimeSpan.Zero; // Don't advance if paused
                         
-                        position = relPos;
-                        duration = relDur;
+                        var currentPosSpan = timeline.Position + TimeSpan.FromTicks((long)(timeSinceUpdate.Ticks * rate));
                         
-                        // Cap position at duration
+                        position = (currentPosSpan - timeline.StartTime).TotalSeconds;
+                        duration = (timeline.EndTime - timeline.StartTime).TotalSeconds;
+                        
+                        // Clamp values
                         if (position > duration) position = duration;
                         if (position < 0) position = 0;
                     }

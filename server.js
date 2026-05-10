@@ -216,6 +216,13 @@ adapterWss.on("connection", (ws) => {
         if (payload.state === 2) normalizedState = STATE_PAUSED;
         if (payload.state === 0) normalizedState = STATE_STOPPED; // Some versions use 0 for stopped
 
+        let pos = payload.position || 0;
+        let dur = payload.duration || 0;
+
+        // Independently normalize milliseconds to seconds if they exceed 10,000 (approx 2.7 hours)
+        if (dur > 10000) dur /= 1000;
+        if (pos > 10000) pos /= 1000;
+
         const key = `${ws._socketId}_json`;
         const updated = {
           name: payload.player || "Browser",
@@ -223,8 +230,8 @@ adapterWss.on("connection", (ws) => {
           artist: payload.artist || "",
           album: payload.album || "",
           state: normalizedState,
-          position: payload.position || 0,
-          duration: payload.duration || 0,
+          position: pos,
+          duration: dur,
           volume: payload.volume || 100,
           activeAt: Date.now()
         };

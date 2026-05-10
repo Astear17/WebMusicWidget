@@ -204,7 +204,7 @@
             background: #f09020;
             box-shadow: 0 0 8px #f09020;
             width: 0%;
-            transition: width 0.3s linear;
+            /* Removed transition to allow pure JS interpolation at 60fps */
         }
 
         .time-display {
@@ -435,7 +435,13 @@
             return mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0');
         }
 
+        let lastData = null;
+        let lastUpdateTimestamp = 0;
+
         function renderState(data) {
+            lastData = data;
+            lastUpdateTimestamp = Date.now();
+
             if (!data || data.type === "clear" || !data.player) {
                 widget.classList.remove("visible");
                 titleText.textContent = "Waiting for Media...";
@@ -455,7 +461,6 @@
             }
             
             const isPlaying = p.state === 0;
-            const isPaused = p.state === 1;
 
             if (title !== currentTitle) {
                 currentTitle = title;
@@ -477,28 +482,6 @@
                 albumCover.classList.remove("has-image");
             }
 
-            // Progress Logic
-            if (p.duration > 0 && !isNaN(p.position)) {
-                let percent = (p.position / p.duration) * 100;
-                if (percent > 100) percent = 100;
-                if (percent < 0) percent = 0;
-                
-                // Vertical Slider
-                progressKnob.style.top = `calc(${percent}% - 6px)`;
-                
-                // Horizontal Bar
-                progressBar.style.width = percent + "%";
-                
-                // Time
-                currentTimeEl.textContent = formatTime(p.position);
-                totalTimeEl.textContent = formatTime(p.duration);
-            } else {
-                progressKnob.style.top = "100%";
-                progressBar.style.width = "0%";
-                currentTimeEl.textContent = "00:00";
-                totalTimeEl.textContent = "00:00";
-            }
-
             if (isPlaying) {
                 widget.classList.remove("paused");
                 updateVuMeter(true);
@@ -509,6 +492,56 @@
 
             widget.classList.add("visible");
         }
+
+        let interpolatedPos = 0;
+        let lastServerPos = 0;
+
+        function updateProgress() {
+            if (!lastData || !lastData.player) return;
+            const p = lastData.player;
+            const isPlaying = p.state === 0;
+            
+            // If server position changed significantly, reset our baseline
+            if (Math.abs(p.position - lastServerPos) > 0.1) {
+                lastServerPos = p.position;
+                interpolatedPos = p.position;
+            }
+
+            if (isPlaying && lastUpdateTimestamp > 0) {
+                const elapsedSinceUpdate = (Date.now() - lastUpdateTimestamp) / 1000;
+                // Only interpolate if we haven't hit the end
+                if (interpolatedPos < p.duration) {
+                    interpolatedPos = p.position + elapsedSinceUpdate;
+                }
+            } else {
+                interpolatedPos = p.position;
+            }
+
+            if (p.duration > 0) {
+                // Clamp
+                if (interpolatedPos > p.duration) interpolatedPos = p.duration;
+                if (interpolatedPos < 0) interpolatedPos = 0;
+
+                const percent = (interpolatedPos / p.duration) * 100;
+                
+                progressKnob.style.top = `calc(${percent}% - 6px)`;
+                progressBar.style.width = percent + "%";
+                currentTimeEl.textContent = formatTime(interpolatedPos);
+                totalTimeEl.textContent = formatTime(p.duration);
+            } else {
+                progressKnob.style.top = "0%";
+                progressBar.style.width = "0%";
+                currentTimeEl.textContent = "00:00";
+                totalTimeEl.textContent = "00:00";
+            }
+        }
+
+        // Smooth 60fps interpolation
+        function tick() {
+            updateProgress();
+            requestAnimationFrame(tick);
+        }
+        tick();
 
         function getWsUrl() {
             const proto = location.protocol === "https:" ? "wss:" : "ws:";
