@@ -326,14 +326,22 @@ const MIME_TYPES = {
 };
 
 const httpServer = http.createServer((req, res) => {
-  let filePath = req.url === "/" ? "/overlay.html" : req.url;
-  filePath = path.join(__dirname, "public", filePath);
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  let pathname = url.pathname;
+  
+  console.log(`[HTTP] Request: ${req.method} ${req.url}`);
 
+  if (pathname === "/") {
+    pathname = "/overlay.html";
+  }
+
+  const filePath = path.join(__dirname, "public", pathname);
   const ext = path.extname(filePath);
   const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
   fs.readFile(filePath, (err, content) => {
     if (err) {
+      console.warn(`[HTTP] 404 Not Found: ${filePath}`);
       res.writeHead(404);
       res.end("Not Found");
       return;
